@@ -1,16 +1,48 @@
 "use client";
-import React, { useContext, useState } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import AuthContext from "@/app/authentication/AuthContext";
+import { useRouter } from "next/navigation";
 
 const Login: React.FC = () => {
-  const { login } = useContext(AuthContext);
+  // const { login } = useContext(AuthContext);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await login(email, password);
+    // await login(email, password);
+    if (!email || !password) {
+      console.log("Preencha todos os campos");
+      return;
+    }
+    try {
+      const res = await fetch("http://localhost:4000/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        localStorage.setItem("token", data.access_token);
+        router.push("/expenses");
+      } else {
+        const errorData = await res.json();
+        setError(errorData.message || "Falha na autenticação");
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        setError("Erro durante a autenticação: " + error.message);
+      } else {
+        setError("Erro desconhecido durante a autenticação.");
+      }
+    }
   };
 
   return (
@@ -39,6 +71,7 @@ const Login: React.FC = () => {
               onChange={(e) => setPassword(e.target.value)}
               required
             />
+            {error && <div className="text-red-500 text-sm mt-3">{error}</div>}
             <div className="flex mt-5 justify-between items-center">
               <a
                 href="/signup"

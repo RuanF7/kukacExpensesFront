@@ -25,17 +25,12 @@ const SignUp: React.FC = () => {
     }
 
     try {
-      const resUserExists = await fetch("http://localhost:4000/auth/users", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email }),
-      });
+      const resUserExists = await fetch(
+        `http://localhost:4000/users/exists?email=${encodeURIComponent(email)}`
+      );
+      const { exists } = await resUserExists.json();
 
-      const { user } = await resUserExists.json();
-
-      if (user) {
+      if (exists) {
         setError("E-mail já cadastrado");
         return;
       }

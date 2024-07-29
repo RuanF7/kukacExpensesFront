@@ -8,10 +8,15 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      colors: {
+        primary: "#fff",
+        secondary: "#313131",
+        fullBlack: "#000",
+        orange: "#de330c",
+        peach: "#f56342",
+      },
       backgroundImage: {
-        "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
-        "gradient-conic":
-          "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
+        pageBg: "url('/images/bg.jpg')",
       },
     },
   },

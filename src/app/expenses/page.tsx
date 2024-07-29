@@ -23,7 +23,7 @@ const Expenses: React.FC = () => {
               <h2 className="text-primary text-2xl font-light mb-4">
                 Resumo das Finanças
               </h2>
-              {/* Aqui você pode adicionar um componente para exibir o resumo das finanças */}
+
               <div className="bg-white bg-opacity-10 p-4 rounded-lg shadow-inner">
                 <p className="text-primary text-lg">Despesas Totais: R$ 0,00</p>
                 <p className="text-primary text-lg">Rendas Totais: R$ 0,00</p>
@@ -34,7 +34,7 @@ const Expenses: React.FC = () => {
               <h2 className="text-primary text-2xl font-light mb-4">
                 Despesas
               </h2>
-              {/* Aqui você pode adicionar uma lista de despesas */}
+
               <div className="bg-white bg-opacity-10 p-4 rounded-lg shadow-inner">
                 <p className="text-primary text-lg">
                   Nenhuma despesa cadastrada.
@@ -43,7 +43,7 @@ const Expenses: React.FC = () => {
             </div>
             <div className="mt-6">
               <h2 className="text-primary text-2xl font-light mb-4">Rendas</h2>
-              {/* Aqui você pode adicionar uma lista de rendas */}
+
               <div className="bg-white bg-opacity-10 p-4 rounded-lg shadow-inner">
                 <p className="text-primary text-lg">
                   Nenhuma renda cadastrada.

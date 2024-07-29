@@ -1,11 +1,10 @@
 "use client";
 import React, { useContext, useState } from "react";
 import Link from "next/link";
-import AuthContext from "../authentication/AuthContext";
+
 import { useRouter } from "next/navigation";
 
 const SignUp: React.FC = () => {
-  // const { register } = useContext(AuthContext);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -44,8 +43,8 @@ const SignUp: React.FC = () => {
       });
 
       if (res.ok) {
-        const form = e.target as HTMLFormElement;
-        form.reset();
+        const data = await res.json();
+        localStorage.setItem("token", data.access_token);
         router.push("/expenses");
       } else {
         console.log("Falha no cadastro.");

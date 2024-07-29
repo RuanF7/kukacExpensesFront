@@ -1,11 +1,8 @@
 "use client";
 import React, { useState } from "react";
-import Link from "next/link";
-import AuthContext from "@/app/authentication/AuthContext";
 import { useRouter } from "next/navigation";
 
 const Login: React.FC = () => {
-  // const { login } = useContext(AuthContext);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -14,7 +11,6 @@ const Login: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // await login(email, password);
     if (!email || !password) {
       console.log("Preencha todos os campos");
       return;
@@ -33,12 +29,11 @@ const Login: React.FC = () => {
         localStorage.setItem("token", data.access_token);
         router.push("/expenses");
       } else {
-        const errorData = await res.json();
-        setError(errorData.message || "Falha na autenticação");
+        setError("Email ou senha incorretos");
       }
     } catch (error) {
       if (error instanceof Error) {
-        setError("Erro durante a autenticação: " + error.message);
+        setError("Erro durante o login: " + error.message);
       } else {
         setError("Erro desconhecido durante a autenticação.");
       }

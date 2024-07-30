@@ -23,13 +23,22 @@ const Expenses: React.FC = () => {
   const [expenseAmount, setExpenseAmount] = useState("");
   const [incomeName, setIncomeName] = useState("");
   const [incomeAmount, setIncomeAmount] = useState("");
+  const [editingExpenseId, setEditingExpenseId] = useState<number | null>(null);
+  const [editingIncomeId, setEditingIncomeId] = useState<number | null>(null);
+  const [editExpenseName, setEditExpenseName] = useState("");
+  const [editExpenseAmount, setEditExpenseAmount] = useState("");
+  const [editIncomeName, setEditIncomeName] = useState("");
+  const [editIncomeAmount, setEditIncomeAmount] = useState("");
+
+  const token = localStorage.getItem("token");
+  const userId = localStorage.getItem("userId");
 
   useEffect(() => {
+    console.log("TOKEN:", token);
+    console.log("USER ID:", userId);
     fetchExpenses();
     fetchIncomes();
   }, []);
-
-  const token = localStorage.getItem("token");
 
   async function fetchExpenses() {
     try {
@@ -38,15 +47,9 @@ const Expenses: React.FC = () => {
           Authorization: `Bearer ${token}`,
         },
       });
-      if (response.data.length === 0) {
-        console.log("No expenses found for the user.");
-      } else {
-        console.log("Expenses data:", response.data);
-      }
       setExpenses(response.data);
     } catch (error) {
       console.error("Erro ao carregar despesas:", error);
-      throw error;
     }
   }
 
@@ -57,15 +60,9 @@ const Expenses: React.FC = () => {
           Authorization: `Bearer ${token}`,
         },
       });
-      if (response.data.length === 0) {
-        console.log("No incomes found for the user.");
-      } else {
-        console.log("Incomes data:", response.data);
-      }
       setIncomes(response.data);
     } catch (error) {
       console.error("Erro ao carregar rendas:", error);
-      throw error;
     }
   }
 
@@ -78,6 +75,7 @@ const Expenses: React.FC = () => {
             name: expenseName,
             amount: parseFloat(expenseAmount),
             date: new Date().toISOString(),
+            userId: userId,
           },
           {
             headers: {
@@ -104,6 +102,7 @@ const Expenses: React.FC = () => {
             name: incomeName,
             amount: parseFloat(incomeAmount),
             date: new Date().toISOString(),
+            userId: userId,
           },
           {
             headers: {
@@ -121,14 +120,103 @@ const Expenses: React.FC = () => {
     }
   };
 
-  const totalExpenses = Array.isArray(expenses)
-    ? expenses.reduce((acc, expense) => acc + expense.amount, 0)
-    : 0;
+  const handleEditExpense = async (id: number) => {
+    if (editExpenseName && editExpenseAmount) {
+      try {
+        const response = await axios.put(
+          `http://localhost:4000/expenses/${id}`,
+          {
+            name: editExpenseName,
+            amount: parseFloat(editExpenseAmount),
+            userId: userId,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        setExpenses(
+          expenses.map((expense) =>
+            expense.id === id ? response.data : expense
+          )
+        );
+        setEditingExpenseId(null);
+        setEditExpenseName("");
+        setEditExpenseAmount("");
+      } catch (error) {
+        console.error("Erro ao editar despesa:", error);
+      }
+    }
+  };
 
-  const totalIncomes = Array.isArray(incomes)
-    ? incomes.reduce((acc, income) => acc + income.amount, 0)
-    : 0;
+  const handleEditIncome = async (id: number) => {
+    if (editIncomeName && editIncomeAmount) {
+      try {
+        const response = await axios.put(
+          `http://localhost:4000/incomes/${id}`,
+          {
+            name: editIncomeName,
+            amount: parseFloat(editIncomeAmount),
+            userId: userId,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        setIncomes(
+          incomes.map((income) => (income.id === id ? response.data : income))
+        );
+        setEditingIncomeId(null);
+        setEditIncomeName("");
+        setEditIncomeAmount("");
+      } catch (error) {
+        console.error("Erro ao editar renda:", error);
+      }
+    }
+  };
 
+  const handleDeleteExpense = async (id: number) => {
+    try {
+      await axios.delete(
+        `http://localhost:4000/expenses/${id}?userId=${userId}`,
+        {
+          // Adicione o userId na query
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setExpenses(expenses.filter((expense) => expense.id !== id));
+    } catch (error) {
+      console.error("Erro ao deletar despesa:", error);
+    }
+  };
+
+  const handleDeleteIncome = async (id: number) => {
+    try {
+      await axios.delete(
+        `http://localhost:4000/incomes/${id}?userId=${userId}`,
+        {
+          // Adicione o userId na query
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setIncomes(incomes.filter((income) => income.id !== id));
+    } catch (error) {
+      console.error("Erro ao deletar renda:", error);
+    }
+  };
+
+  const totalExpenses = expenses.reduce(
+    (acc, expense) => acc + expense.amount,
+    0
+  );
+  const totalIncomes = incomes.reduce((acc, income) => acc + income.amount, 0);
   const balance = totalIncomes - totalExpenses;
 
   return (
@@ -225,10 +313,55 @@ const Expenses: React.FC = () => {
               </h2>
               <div className="bg-white bg-opacity-10 p-4 rounded-lg shadow-inner">
                 {expenses.length > 0 ? (
-                  expenses.map((expense, index) => (
-                    <p key={index} className="text-primary text-lg">
-                      {expense.name}: R$ {expense.amount.toFixed(2)}
-                    </p>
+                  expenses.map((expense) => (
+                    <div key={expense.id} className="mb-2">
+                      {editingExpenseId === expense.id ? (
+                        <div>
+                          <input
+                            type="text"
+                            value={editExpenseName}
+                            onChange={(e) => setEditExpenseName(e.target.value)}
+                            className="w-full p-2 mb-2 border rounded"
+                          />
+                          <input
+                            type="number"
+                            value={editExpenseAmount}
+                            onChange={(e) =>
+                              setEditExpenseAmount(e.target.value)
+                            }
+                            className="w-full p-2 mb-2 border rounded"
+                          />
+                          <button
+                            onClick={() => handleEditExpense(expense.id)}
+                            className="bg-orange text-fullBlack font-medium rounded-3xl py-2 px-4 transition hover:text-primary w-full"
+                          >
+                            Confirmar
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center">
+                          <p className="text-primary text-lg flex-1">
+                            {expense.name}: R$ {expense.amount.toFixed(2)}
+                          </p>
+                          <button
+                            onClick={() => {
+                              setEditingExpenseId(expense.id);
+                              setEditExpenseName(expense.name);
+                              setEditExpenseAmount(expense.amount.toFixed(2));
+                            }}
+                            className="bg-yellow-500 text-white py-1 px-2 rounded mr-2"
+                          >
+                            Editar
+                          </button>
+                          <button
+                            onClick={() => handleDeleteExpense(expense.id)}
+                            className="bg-red-500 text-white py-1 px-2 rounded"
+                          >
+                            Deletar
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   ))
                 ) : (
                   <p className="text-primary text-lg">
@@ -241,10 +374,55 @@ const Expenses: React.FC = () => {
               <h2 className="text-primary text-2xl font-light mb-4">Rendas</h2>
               <div className="bg-white bg-opacity-10 p-4 rounded-lg shadow-inner">
                 {incomes.length > 0 ? (
-                  incomes.map((income, index) => (
-                    <p key={index} className="text-primary text-lg">
-                      {income.name}: R$ {income.amount.toFixed(2)}
-                    </p>
+                  incomes.map((income) => (
+                    <div key={income.id} className="mb-2">
+                      {editingIncomeId === income.id ? (
+                        <div>
+                          <input
+                            type="text"
+                            value={editIncomeName}
+                            onChange={(e) => setEditIncomeName(e.target.value)}
+                            className="w-full p-2 mb-2 border rounded"
+                          />
+                          <input
+                            type="number"
+                            value={editIncomeAmount}
+                            onChange={(e) =>
+                              setEditIncomeAmount(e.target.value)
+                            }
+                            className="w-full p-2 mb-2 border rounded"
+                          />
+                          <button
+                            onClick={() => handleEditIncome(income.id)}
+                            className="bg-orange text-fullBlack font-medium rounded-3xl py-2 px-4 transition hover:text-primary w-full"
+                          >
+                            Confirmar
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center">
+                          <p className="text-primary text-lg flex-1">
+                            {income.name}: R$ {income.amount.toFixed(2)}
+                          </p>
+                          <button
+                            onClick={() => {
+                              setEditingIncomeId(income.id);
+                              setEditIncomeName(income.name);
+                              setEditIncomeAmount(income.amount.toFixed(2));
+                            }}
+                            className="bg-yellow-500 text-white py-1 px-2 rounded mr-2"
+                          >
+                            Editar
+                          </button>
+                          <button
+                            onClick={() => handleDeleteIncome(income.id)}
+                            className="bg-red-500 text-white py-1 px-2 rounded"
+                          >
+                            Deletar
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   ))
                 ) : (
                   <p className="text-primary text-lg">

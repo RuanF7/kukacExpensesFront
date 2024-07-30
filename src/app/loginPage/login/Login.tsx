@@ -27,6 +27,7 @@ const Login: React.FC = () => {
       if (res.ok) {
         const data = await res.json();
         localStorage.setItem("token", data.access_token);
+        localStorage.setItem("userId", JSON.stringify(data.user));
         router.push("/expenses");
       } else {
         setError("Email ou senha incorretos");

@@ -1,12 +1,15 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 
 interface Expense {
+  id: number;
   name: string;
   amount: number;
 }
 
 interface Income {
+  id: number;
   name: string;
   amount: number;
 }
@@ -21,39 +24,111 @@ const Expenses: React.FC = () => {
   const [incomeName, setIncomeName] = useState("");
   const [incomeAmount, setIncomeAmount] = useState("");
 
-  const handleAddExpense = () => {
+  useEffect(() => {
+    fetchExpenses();
+    fetchIncomes();
+  }, []);
+
+  const token = localStorage.getItem("token");
+
+  async function fetchExpenses() {
+    try {
+      const response = await axios.get("http://localhost:4000/expenses", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (response.data.length === 0) {
+        console.log("No expenses found for the user.");
+      } else {
+        console.log("Expenses data:", response.data);
+      }
+      setExpenses(response.data);
+    } catch (error) {
+      console.error("Erro ao carregar despesas:", error);
+      throw error;
+    }
+  }
+
+  async function fetchIncomes() {
+    try {
+      const response = await axios.get("http://localhost:4000/incomes", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (response.data.length === 0) {
+        console.log("No incomes found for the user.");
+      } else {
+        console.log("Incomes data:", response.data);
+      }
+      setIncomes(response.data);
+    } catch (error) {
+      console.error("Erro ao carregar rendas:", error);
+      throw error;
+    }
+  }
+
+  const handleAddExpense = async () => {
     if (expenseName && expenseAmount) {
-      const newExpense: Expense = {
-        name: expenseName,
-        amount: parseFloat(expenseAmount),
-      };
-
-      setExpenses([...expenses, newExpense]);
-      setExpenseName("");
-      setExpenseAmount("");
-      setShowExpenseInput(false);
+      try {
+        const response = await axios.post(
+          "http://localhost:4000/expenses",
+          {
+            name: expenseName,
+            amount: parseFloat(expenseAmount),
+            date: new Date().toISOString(),
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        setExpenses([...expenses, response.data]);
+        setExpenseName("");
+        setExpenseAmount("");
+        setShowExpenseInput(false);
+      } catch (error) {
+        console.error("Erro ao adicionar despesa:", error);
+      }
     }
   };
 
-  const handleAddIncome = () => {
+  const handleAddIncome = async () => {
     if (incomeName && incomeAmount) {
-      const newIncome: Income = {
-        name: incomeName,
-        amount: parseFloat(incomeAmount),
-      };
-
-      setIncomes([...incomes, newIncome]);
-      setIncomeName("");
-      setIncomeAmount("");
-      setShowIncomeInput(false);
+      try {
+        const response = await axios.post(
+          "http://localhost:4000/incomes",
+          {
+            name: incomeName,
+            amount: parseFloat(incomeAmount),
+            date: new Date().toISOString(),
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        setIncomes([...incomes, response.data]);
+        setIncomeName("");
+        setIncomeAmount("");
+        setShowIncomeInput(false);
+      } catch (error) {
+        console.error("Erro ao adicionar renda:", error);
+      }
     }
   };
 
-  const totalExpenses = expenses.reduce(
-    (acc, expense) => acc + expense.amount,
-    0
-  );
-  const totalIncomes = incomes.reduce((acc, income) => acc + income.amount, 0);
+  const totalExpenses = Array.isArray(expenses)
+    ? expenses.reduce((acc, expense) => acc + expense.amount, 0)
+    : 0;
+
+  const totalIncomes = Array.isArray(incomes)
+    ? incomes.reduce((acc, income) => acc + income.amount, 0)
+    : 0;
+
   const balance = totalIncomes - totalExpenses;
 
   return (

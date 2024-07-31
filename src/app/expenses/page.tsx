@@ -2,6 +2,10 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faPenToSquare, faTrash } from "@fortawesome/free-solid-svg-icons";
+import EditUser from "../editUser/EditUser";
+
 interface Expense {
   id: number;
   name: string;
@@ -183,7 +187,6 @@ const Expenses: React.FC = () => {
       await axios.delete(
         `http://localhost:4000/expenses/${id}?userId=${userId}`,
         {
-          // Adicione o userId na query
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -200,7 +203,6 @@ const Expenses: React.FC = () => {
       await axios.delete(
         `http://localhost:4000/incomes/${id}?userId=${userId}`,
         {
-          // Adicione o userId na query
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -220,16 +222,16 @@ const Expenses: React.FC = () => {
   const balance = totalIncomes - totalExpenses;
 
   return (
-    <main className="bg-pageBg bg-cover bg-center bg-no-repeat">
-      <div className="w-full h-screen flex justify-center items-center bg-secondary bg-opacity-25">
-        <aside className="bg-primary w-full max-w-3xl rounded-xl bg-opacity-20 shadow-lg shadow-black">
+    <main className="bg-pageBg bg-cover bg-center bg-no-repeat min-h-screen flex justify-center items-center">
+      <div className="w-full max-w-4xl flex flex-col md:flex-row justify-center items-start bg-secondary bg-opacity-25 p-4 md:p-8 rounded-lg shadow-lg shadow-black">
+        <aside className="bg-primary w-full md:max-w-3xl rounded-xl bg-opacity-10 shadow-lg shadow-black mb-4 md:mb-0 md:mr-4">
           <h1 className="text-center text-secondary font-medium text-4xl bg-orange rounded-t-xl m-0 py-4">
             Controle de Despesas
           </h1>
           <div className="p-6">
             <div className="mb-4">
               <button
-                className="bg-fullBlack text-orange font-medium rounded-3xl py-2 px-4 transition hover:text-primary w-full"
+                className="bg-fullBlack text-orange font-medium rounded py-2 px-4 transition hover:text-primary w-full"
                 onClick={() => setShowExpenseInput(!showExpenseInput)}
               >
                 Adicionar Despesa
@@ -241,18 +243,18 @@ const Expenses: React.FC = () => {
                     placeholder="Nome da Despesa"
                     value={expenseName}
                     onChange={(e) => setExpenseName(e.target.value)}
-                    className="w-full p-2 mb-2 border rounded"
+                    className="w-full p-2 mb-2 border rounded border-peach"
                   />
                   <input
                     type="number"
                     placeholder="Valor da Despesa"
                     value={expenseAmount}
                     onChange={(e) => setExpenseAmount(e.target.value)}
-                    className="w-full p-2 mb-2 border rounded"
+                    className="w-full p-2 mb-2 border rounded border-peach"
                   />
                   <button
                     onClick={handleAddExpense}
-                    className="bg-orange text-fullBlack font-medium rounded-3xl py-2 px-4 transition hover:text-primary w-full"
+                    className="bg-orange text-fullBlack font-medium rounded py-2 px-4 transition hover:text-primary w-full"
                   >
                     Confirmar
                   </button>
@@ -261,30 +263,30 @@ const Expenses: React.FC = () => {
             </div>
             <div className="mb-4">
               <button
-                className="bg-fullBlack text-orange font-medium rounded-3xl py-2 px-4 transition hover:text-primary w-full"
+                className="bg-fullBlack text-orange font-medium rounded py-2 px-4 transition hover:text-primary w-full"
                 onClick={() => setShowIncomeInput(!showIncomeInput)}
               >
                 Adicionar Renda
               </button>
               {showIncomeInput && (
-                <div className="mt-2">
+                <div className="mt-4">
                   <input
                     type="text"
                     placeholder="Nome da Renda"
                     value={incomeName}
                     onChange={(e) => setIncomeName(e.target.value)}
-                    className="w-full p-2 mb-2 border rounded"
+                    className="w-full p-2 mb-2 border rounded border-peach"
                   />
                   <input
                     type="number"
                     placeholder="Valor da Renda"
                     value={incomeAmount}
                     onChange={(e) => setIncomeAmount(e.target.value)}
-                    className="w-full p-2 mb-2 border rounded"
+                    className="w-full p-2 mb-4 border rounded border-peach"
                   />
                   <button
                     onClick={handleAddIncome}
-                    className="bg-orange text-fullBlack font-medium rounded-3xl py-2 px-4 transition hover:text-primary w-full"
+                    className="bg-orange text-fullBlack font-medium rounded py-2 px-4 transition hover:text-primary w-full"
                   >
                     Confirmar
                   </button>
@@ -295,7 +297,7 @@ const Expenses: React.FC = () => {
               <h2 className="text-primary text-2xl font-light mb-4">
                 Resumo das Finanças
               </h2>
-              <div className="bg-white bg-opacity-10 p-4 rounded-lg shadow-inner">
+              <div className="bg-fullBlack p-4 rounded-lg shadow-inner">
                 <p className="text-primary text-lg">
                   Despesas Totais: R$ {totalExpenses.toFixed(2)}
                 </p>
@@ -311,17 +313,24 @@ const Expenses: React.FC = () => {
               <h2 className="text-primary text-2xl font-light mb-4">
                 Despesas
               </h2>
-              <div className="bg-white bg-opacity-10 p-4 rounded-lg shadow-inner">
+              <div className="bg-fullBlack p-4 rounded-lg shadow-inner">
                 {expenses.length > 0 ? (
-                  expenses.map((expense) => (
-                    <div key={expense.id} className="mb-2">
+                  expenses.map((expense, index) => (
+                    <div
+                      key={expense.id}
+                      className={
+                        expenses.length > 1 && index < expenses.length - 1
+                          ? "mb-2"
+                          : ""
+                      }
+                    >
                       {editingExpenseId === expense.id ? (
                         <div>
                           <input
                             type="text"
                             value={editExpenseName}
                             onChange={(e) => setEditExpenseName(e.target.value)}
-                            className="w-full p-2 mb-2 border rounded"
+                            className="w-full p-2 mb-2 border rounded border-peach"
                           />
                           <input
                             type="number"
@@ -329,7 +338,7 @@ const Expenses: React.FC = () => {
                             onChange={(e) =>
                               setEditExpenseAmount(e.target.value)
                             }
-                            className="w-full p-2 mb-2 border rounded"
+                            className="w-full p-2 mb-2 border rounded border-peach"
                           />
                           <button
                             onClick={() => handleEditExpense(expense.id)}
@@ -349,15 +358,21 @@ const Expenses: React.FC = () => {
                               setEditExpenseName(expense.name);
                               setEditExpenseAmount(expense.amount.toFixed(2));
                             }}
-                            className="bg-yellow-500 text-white py-1 px-2 rounded mr-2"
+                            className="bg-fullBlack text-fullBlack py-1 px-2 rounded mr-2"
                           >
-                            Editar
+                            <FontAwesomeIcon
+                              icon={faPenToSquare}
+                              style={{ color: "#fa6400" }}
+                            />
                           </button>
                           <button
                             onClick={() => handleDeleteExpense(expense.id)}
-                            className="bg-red-500 text-white py-1 px-2 rounded"
+                            className="bg-fullBlack text-orange py-1 px-2 rounded"
                           >
-                            Deletar
+                            <FontAwesomeIcon
+                              icon={faTrash}
+                              style={{ color: "#fa6400" }}
+                            />
                           </button>
                         </div>
                       )}
@@ -372,17 +387,24 @@ const Expenses: React.FC = () => {
             </div>
             <div className="mt-6">
               <h2 className="text-primary text-2xl font-light mb-4">Rendas</h2>
-              <div className="bg-white bg-opacity-10 p-4 rounded-lg shadow-inner">
+              <div className="bg-fullBlack p-4 rounded-lg shadow-inner">
                 {incomes.length > 0 ? (
-                  incomes.map((income) => (
-                    <div key={income.id} className="mb-2">
+                  incomes.map((income, index) => (
+                    <div
+                      key={income.id}
+                      className={
+                        incomes.length > 1 && index < incomes.length - 1
+                          ? "mb-2"
+                          : ""
+                      }
+                    >
                       {editingIncomeId === income.id ? (
                         <div>
                           <input
                             type="text"
                             value={editIncomeName}
                             onChange={(e) => setEditIncomeName(e.target.value)}
-                            className="w-full p-2 mb-2 border rounded"
+                            className="w-full p-2 mb-2 border rounded border-peach"
                           />
                           <input
                             type="number"
@@ -390,7 +412,7 @@ const Expenses: React.FC = () => {
                             onChange={(e) =>
                               setEditIncomeAmount(e.target.value)
                             }
-                            className="w-full p-2 mb-2 border rounded"
+                            className="w-full p-2 mb-2 border rounded border-peach"
                           />
                           <button
                             onClick={() => handleEditIncome(income.id)}
@@ -410,15 +432,21 @@ const Expenses: React.FC = () => {
                               setEditIncomeName(income.name);
                               setEditIncomeAmount(income.amount.toFixed(2));
                             }}
-                            className="bg-yellow-500 text-white py-1 px-2 rounded mr-2"
+                            className="bg-fullBlack text-fullBlack py-1 px-2 rounded mr-2"
                           >
-                            Editar
+                            <FontAwesomeIcon
+                              icon={faPenToSquare}
+                              style={{ color: "#fa6400" }}
+                            />
                           </button>
                           <button
                             onClick={() => handleDeleteIncome(income.id)}
-                            className="bg-red-500 text-white py-1 px-2 rounded"
+                            className="bg-fullBlack text-orange py-1 px-2 rounded"
                           >
-                            Deletar
+                            <FontAwesomeIcon
+                              icon={faTrash}
+                              style={{ color: "#fa6400" }}
+                            />
                           </button>
                         </div>
                       )}
@@ -431,6 +459,7 @@ const Expenses: React.FC = () => {
                 )}
               </div>
             </div>
+            <EditUser />
           </div>
         </aside>
       </div>

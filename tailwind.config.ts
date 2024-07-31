@@ -16,7 +16,7 @@ const config: Config = {
         peach: "#f56342",
       },
       backgroundImage: {
-        pageBg: "url('/images/bg.jpg')",
+        pageBg: "url('/images/darkbg.jpg')",
       },
     },
   },

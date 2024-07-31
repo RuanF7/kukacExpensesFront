@@ -18,7 +18,7 @@ Este é o frontend para o projeto Expense Control, construído com Next.js e Tai
 1. Clone o repositório:
 
    ```bash
-   git clone <[URL_DO_REPOSITORIO_FRONTEND](https://github.com/RuanF7/kukacExpensesFront)>
+   git clone <(https://github.com/RuanF7/kukacExpensesFront)>
    cd <expenses-kukac-frontend>
 
 2. Instale as dependências:

@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
+import { format, toZonedTime } from "date-fns-tz";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPenToSquare, faTrash } from "@fortawesome/free-solid-svg-icons";
 import EditUser from "../editUser/EditUser";
@@ -10,12 +11,14 @@ interface Expense {
   id: number;
   name: string;
   amount: number;
+  date: string;
 }
 
 interface Income {
   id: number;
   name: string;
   amount: number;
+  date: string;
 }
 
 const Expenses: React.FC = () => {
@@ -25,17 +28,23 @@ const Expenses: React.FC = () => {
   const [incomes, setIncomes] = useState<Income[]>([]);
   const [expenseName, setExpenseName] = useState("");
   const [expenseAmount, setExpenseAmount] = useState("");
+  const [expenseDate, setExpenseDate] = useState("");
   const [incomeName, setIncomeName] = useState("");
   const [incomeAmount, setIncomeAmount] = useState("");
+  const [incomeDate, setIncomeDate] = useState("");
   const [editingExpenseId, setEditingExpenseId] = useState<number | null>(null);
   const [editingIncomeId, setEditingIncomeId] = useState<number | null>(null);
   const [editExpenseName, setEditExpenseName] = useState("");
   const [editExpenseAmount, setEditExpenseAmount] = useState("");
+  const [editExpenseDate, setEditExpenseDate] = useState("");
   const [editIncomeName, setEditIncomeName] = useState("");
   const [editIncomeAmount, setEditIncomeAmount] = useState("");
+  const [editIncomeDate, setEditIncomeDate] = useState("");
 
   const token = localStorage.getItem("token");
   const userId = localStorage.getItem("userId");
+
+  const timeZone = "America/Sao_Paulo";
 
   useEffect(() => {
     console.log("TOKEN:", token);
@@ -43,6 +52,18 @@ const Expenses: React.FC = () => {
     fetchExpenses();
     fetchIncomes();
   }, []);
+
+  const formatDate = (dateString: string) => {
+    try {
+      const date = new Date(dateString);
+      date.setDate(date.getDate() + 1);
+      const zonedDate = toZonedTime(date, timeZone);
+      return format(zonedDate, "dd/MM/yyyy", { timeZone });
+    } catch (error) {
+      console.error("Erro ao formatar data:", error);
+      return "Data inválida";
+    }
+  };
 
   async function fetchExpenses() {
     try {
@@ -71,14 +92,14 @@ const Expenses: React.FC = () => {
   }
 
   const handleAddExpense = async () => {
-    if (expenseName && expenseAmount) {
+    if (expenseName && expenseAmount && expenseDate) {
       try {
         const response = await axios.post(
           "http://localhost:4000/expenses",
           {
             name: expenseName,
             amount: parseFloat(expenseAmount),
-            date: new Date().toISOString(),
+            date: expenseDate,
             userId: userId,
           },
           {
@@ -90,6 +111,7 @@ const Expenses: React.FC = () => {
         setExpenses([...expenses, response.data]);
         setExpenseName("");
         setExpenseAmount("");
+        setExpenseDate("");
         setShowExpenseInput(false);
       } catch (error) {
         console.error("Erro ao adicionar despesa:", error);
@@ -98,14 +120,14 @@ const Expenses: React.FC = () => {
   };
 
   const handleAddIncome = async () => {
-    if (incomeName && incomeAmount) {
+    if (incomeName && incomeAmount && incomeDate) {
       try {
         const response = await axios.post(
           "http://localhost:4000/incomes",
           {
             name: incomeName,
             amount: parseFloat(incomeAmount),
-            date: new Date().toISOString(),
+            date: incomeDate,
             userId: userId,
           },
           {
@@ -117,7 +139,9 @@ const Expenses: React.FC = () => {
         setIncomes([...incomes, response.data]);
         setIncomeName("");
         setIncomeAmount("");
+        setIncomeDate("");
         setShowIncomeInput(false);
+        console.log(incomes);
       } catch (error) {
         console.error("Erro ao adicionar renda:", error);
       }
@@ -125,13 +149,14 @@ const Expenses: React.FC = () => {
   };
 
   const handleEditExpense = async (id: number) => {
-    if (editExpenseName && editExpenseAmount) {
+    if (editExpenseName && editExpenseAmount && editExpenseDate) {
       try {
         const response = await axios.put(
           `http://localhost:4000/expenses/${id}`,
           {
             name: editExpenseName,
             amount: parseFloat(editExpenseAmount),
+            date: editExpenseDate,
             userId: userId,
           },
           {
@@ -148,6 +173,8 @@ const Expenses: React.FC = () => {
         setEditingExpenseId(null);
         setEditExpenseName("");
         setEditExpenseAmount("");
+        setEditExpenseDate("");
+        console.log(expenses);
       } catch (error) {
         console.error("Erro ao editar despesa:", error);
       }
@@ -155,13 +182,14 @@ const Expenses: React.FC = () => {
   };
 
   const handleEditIncome = async (id: number) => {
-    if (editIncomeName && editIncomeAmount) {
+    if (editIncomeName && editIncomeAmount && editIncomeDate) {
       try {
         const response = await axios.put(
           `http://localhost:4000/incomes/${id}`,
           {
             name: editIncomeName,
             amount: parseFloat(editIncomeAmount),
+            date: editIncomeDate,
             userId: userId,
           },
           {
@@ -176,6 +204,7 @@ const Expenses: React.FC = () => {
         setEditingIncomeId(null);
         setEditIncomeName("");
         setEditIncomeAmount("");
+        setEditIncomeDate("");
       } catch (error) {
         console.error("Erro ao editar renda:", error);
       }
@@ -252,6 +281,13 @@ const Expenses: React.FC = () => {
                     onChange={(e) => setExpenseAmount(e.target.value)}
                     className="w-full p-2 mb-2 border rounded border-peach"
                   />
+                  <input
+                    type="date"
+                    placeholder="Data da Despesa"
+                    value={expenseDate}
+                    onChange={(e) => setExpenseDate(e.target.value)}
+                    className="w-full p-2 mb-2 border rounded border-peach"
+                  />
                   <button
                     onClick={handleAddExpense}
                     className="bg-orange text-fullBlack font-medium rounded py-2 px-4 transition hover:text-primary w-full"
@@ -283,6 +319,13 @@ const Expenses: React.FC = () => {
                     value={incomeAmount}
                     onChange={(e) => setIncomeAmount(e.target.value)}
                     className="w-full p-2 mb-4 border rounded border-peach"
+                  />
+                  <input
+                    type="date"
+                    placeholder="Data da Renda"
+                    value={incomeDate}
+                    onChange={(e) => setIncomeDate(e.target.value)}
+                    className="w-full p-2 mb-2 border rounded border-peach"
                   />
                   <button
                     onClick={handleAddIncome}
@@ -340,6 +383,12 @@ const Expenses: React.FC = () => {
                             }
                             className="w-full p-2 mb-2 border rounded border-peach"
                           />
+                          <input
+                            type="date"
+                            value={editExpenseDate || ""}
+                            onChange={(e) => setEditExpenseDate(e.target.value)}
+                            className="w-full p-2 mb-2 border rounded border-peach"
+                          />
                           <button
                             onClick={() => handleEditExpense(expense.id)}
                             className="bg-orange text-fullBlack font-medium rounded-3xl py-2 px-4 transition hover:text-primary w-full"
@@ -350,13 +399,17 @@ const Expenses: React.FC = () => {
                       ) : (
                         <div className="flex items-center">
                           <p className="text-primary text-lg flex-1">
-                            {expense.name}: R$ {expense.amount.toFixed(2)}
+                            {expense.name}: R$ {expense.amount.toFixed(2)} -{" "}
+                            {expense.date
+                              ? formatDate(expense.date)
+                              : "Data inválida"}
                           </p>
                           <button
                             onClick={() => {
                               setEditingExpenseId(expense.id);
                               setEditExpenseName(expense.name);
                               setEditExpenseAmount(expense.amount.toFixed(2));
+                              setEditExpenseDate(expense.date);
                             }}
                             className="bg-fullBlack text-fullBlack py-1 px-2 rounded mr-2"
                           >
@@ -414,6 +467,12 @@ const Expenses: React.FC = () => {
                             }
                             className="w-full p-2 mb-2 border rounded border-peach"
                           />
+                          <input
+                            type="date"
+                            value={editIncomeDate || ""}
+                            onChange={(e) => setEditIncomeDate(e.target.value)}
+                            className="w-full p-2 mb-2 border rounded border-peach"
+                          />
                           <button
                             onClick={() => handleEditIncome(income.id)}
                             className="bg-orange text-fullBlack font-medium rounded-3xl py-2 px-4 transition hover:text-primary w-full"
@@ -424,13 +483,17 @@ const Expenses: React.FC = () => {
                       ) : (
                         <div className="flex items-center">
                           <p className="text-primary text-lg flex-1">
-                            {income.name}: R$ {income.amount.toFixed(2)}
+                            {income.name}: R$ {income.amount.toFixed(2)} -{" "}
+                            {income.date
+                              ? formatDate(income.date)
+                              : "Data inválida"}
                           </p>
                           <button
                             onClick={() => {
                               setEditingIncomeId(income.id);
                               setEditIncomeName(income.name);
                               setEditIncomeAmount(income.amount.toFixed(2));
+                              setEditIncomeDate(income.date);
                             }}
                             className="bg-fullBlack text-fullBlack py-1 px-2 rounded mr-2"
                           >
